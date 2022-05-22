@@ -1,3 +1,4 @@
+#include <cstring>
 #include "aes.h"
 
 
@@ -83,7 +84,7 @@ const unsigned char inv_sbox[16][16] = {
 
 
 unsigned char *PaddingNulls(unsigned char in[], unsigned inLen, unsigned alignLen) {
-    unsigned char *alignIn = malloc(sizeof(unsigned) * alignLen);
+    auto *alignIn = (unsigned char *) malloc(sizeof(unsigned) * alignLen);
     memcpy(alignIn, in, inLen);
     memset(alignIn + inLen, 0x00, alignLen - inLen);
     return alignIn;
@@ -112,7 +113,7 @@ void SubBytes(unsigned char **state, aes_base *aes) {
 }
 
 void ShiftRow(unsigned char **state, int i, int n, aes_base *aes) {
-    unsigned char *tmp = malloc(aes->Nb * sizeof(unsigned char));
+    auto *tmp = (unsigned char *) malloc(aes->Nb * sizeof(unsigned char));
     for (
             int j = 0;
             j < aes->Nb;
@@ -130,8 +131,7 @@ void ShiftRows(unsigned char **state, aes_base *aes) {
     ShiftRow(state, 3, 3, aes);
 }
 
-unsigned char xtime(unsigned char b)    
-{
+unsigned char xtime(unsigned char b) {
     return (b << 1) ^ (((b >> 7) & 1) * 0x1b);
 }
 
@@ -143,30 +143,30 @@ void MixSingleColumn(unsigned char *r) {
     unsigned char h;
     for (c = 0; c < 4; c++) {
         a[c] = r[c];
-        
+
         h = (unsigned char) ((signed char) r[c]
-                >> 7); 
+                >> 7);
         b[c] = r[c]
-                << 1; 
-        b[c] ^= 0x1B & h; 
+                << 1;
+        b[c] ^= 0x1B & h;
     }
-    r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1]; 
-    r[1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2]; 
-    r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3]; 
-    r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0]; 
+    r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];
+    r[1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2];
+    r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
+    r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
 }
 
 
 void MixColumns(unsigned char **state) {
-    unsigned char *temp = malloc(sizeof(unsigned) * 4);
+    auto *temp = (unsigned char *) malloc(sizeof(unsigned) * 4);
 
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            temp[j] = state[j][i]; 
+            temp[j] = state[j][i];
         }
-        MixSingleColumn(temp); 
+        MixSingleColumn(temp);
         for (int j = 0; j < 4; ++j) {
-            state[j][i] = temp[j]; 
+            state[j][i] = temp[j];
         }
     }
     free(temp);
@@ -215,8 +215,8 @@ void Rcon(unsigned char *a, int n) {
 }
 
 void KeyExpansion(const unsigned char key[], unsigned char w[], aes_base *aes) {
-    unsigned char *temp = malloc(sizeof(unsigned char) * 4);
-    unsigned char *rcon = malloc(sizeof(unsigned char) * 4);
+    auto *temp = (unsigned char *) malloc(sizeof(unsigned char) * 4);
+    auto *rcon = (unsigned char *) malloc(sizeof(unsigned char) * 4);
 
     int i = 0;
     while (i < 4 * aes->Nk) {
@@ -263,12 +263,11 @@ void InvSubBytes(unsigned char **state, aes_base *aes) {
 }
 
 
-unsigned char mul_bytes(unsigned char a, unsigned char b) 
-{
+unsigned char mul_bytes(unsigned char a, unsigned char b) {
     unsigned char p = 0;
     unsigned char high_bit_mask = 0x80;
     unsigned char high_bit;
-    unsigned char modulo = 0x1B; 
+    unsigned char modulo = 0x1B;
 
 
     for (int i = 0; i < 8; i++) {
@@ -314,8 +313,8 @@ void InvShiftRows(unsigned char **state, aes_base *aes) {
 }
 
 void EncryptBlock(const unsigned char in[], unsigned char out[], unsigned char *roundKeys, aes_base *aes) {
-    unsigned char **state = malloc(sizeof(unsigned char *) * 4);
-    state[0] = malloc(sizeof(unsigned char) * 4 * aes->Nb);
+    auto **state = (unsigned char **) malloc(sizeof(unsigned char *) * 4);
+    state[0] = (unsigned char *) malloc(sizeof(unsigned char) * 4 * aes->Nb);
     int i, j, round;
     for (i = 0; i < 4; i++) {
         state[i] = state[0] + aes->Nb * i;
@@ -351,8 +350,8 @@ void EncryptBlock(const unsigned char in[], unsigned char out[], unsigned char *
 }
 
 void DecryptBlock(const unsigned char in[], unsigned char out[], unsigned char *roundKeys, aes_base *aes) {
-    unsigned char **state = malloc(sizeof(unsigned char *) * 4);
-    state[0] = malloc(sizeof(unsigned char) * 4 * aes->Nb);
+    auto **state = (unsigned char **) malloc(sizeof(unsigned char *) * 4);
+    state[0] = (unsigned char *) malloc(sizeof(unsigned char) * 4 * aes->Nb);
     int i, j, round;
     for (i = 0; i < 4; i++) {
         state[i] = state[0] + aes->Nb * i;
@@ -388,7 +387,7 @@ void DecryptBlock(const unsigned char in[], unsigned char out[], unsigned char *
 }
 
 aes_base *aes_init(int keyLen) {
-    aes_base *aes = malloc(sizeof(aes_base));
+    auto *aes = (aes_base *) malloc(sizeof(aes_base));
     aes->Nb = 4;
     switch (keyLen) {
         case 128:
@@ -413,9 +412,9 @@ aes_base *aes_init(int keyLen) {
 aes_ctx Encrypt(const aes_ctx in, unsigned char key[], aes_base *aes) {
     aes_ctx out;
     out.length = GetPaddingLength(in.length, aes);
-    out.ctx = malloc(sizeof(unsigned char) * out.length);
+    out.ctx = (unsigned char *) malloc(sizeof(unsigned char) * out.length);
     unsigned char *alignIn = PaddingNulls(in.ctx, in.length, out.length);
-    unsigned char *roundKeys = malloc(4 * aes->Nb * (aes->Nr + 1) * sizeof(unsigned char));
+    auto *roundKeys = (unsigned char *) malloc(4 * aes->Nb * (aes->Nr + 1) * sizeof(unsigned char));
     KeyExpansion(key, roundKeys, aes);
     for (unsigned i = 0; i < out.length; i += aes->blockBytesLen) {
         EncryptBlock(alignIn + i, out.ctx + i, roundKeys, aes);
@@ -428,8 +427,8 @@ aes_ctx Encrypt(const aes_ctx in, unsigned char key[], aes_base *aes) {
 aes_ctx Decrypt(const aes_ctx in, unsigned char key[], aes_base *aes) {
     aes_ctx out;
     out.length = in.length;
-    out.ctx = malloc(sizeof(unsigned char) * in.length);
-    unsigned char *roundKeys = malloc(4 * aes->Nb * (aes->Nr + 1) * sizeof(unsigned char));
+    out.ctx = (unsigned char *) malloc(sizeof(unsigned char) * in.length);
+    auto *roundKeys = (unsigned char *) malloc(4 * aes->Nb * (aes->Nr + 1) * sizeof(unsigned char));
     KeyExpansion(key, roundKeys, aes);
     for (unsigned i = 0; i < in.length; i += aes->blockBytesLen) {
         DecryptBlock(in.ctx + i, out.ctx + i, roundKeys, aes);
@@ -442,13 +441,14 @@ char *aesEncode(const char msg[], const size_t size, const char key[], size_t *r
     aes_base *aes = aes_init(256);
     aes_ctx _msg;
     _msg.length = 64;
-    _msg.ctx = malloc(sizeof(unsigned char) * 64);
+    _msg.ctx = (unsigned char *) malloc(sizeof(unsigned char) * 64);
     for (int j = 0; j < 64; j++) _msg.ctx[j] = 0;
 
     unsigned times = size / 64 + (int) (size % 64 != 0);
-    char *result = malloc((times * 64 + 4) * sizeof(char));
+    char *result = (char *) malloc((times * 64 + 4) * sizeof(char));
     {
         unsigned _temp = size, pos = 3;
+        for(int i=0;i<4;i++) result[i]=0;
         while (_temp != 0) {
             result[pos] = (char) (_temp % 256);
             pos--;
@@ -473,15 +473,15 @@ char *aesDecode(const char plain_text[], const size_t size, const char key[], si
     aes_base *aes = aes_init(256);
     aes_ctx _msg;
     _msg.length = 64;
-    _msg.ctx = malloc(sizeof(unsigned char) * 64);
+    _msg.ctx = (unsigned char *) malloc(sizeof(unsigned char) * 64);
 
     unsigned times, max_length = 0;
     for (int i = 0; i < 4; i++) {
         max_length <<= 8;
-        max_length += (unsigned char)plain_text[i];
+        max_length += (unsigned char) plain_text[i];
     }
-    char *result = malloc(max_length * sizeof(char));
-    times = size/64;
+    char *result = (char *) malloc(max_length * sizeof(char));
+    times = size / 64;
     for (unsigned i = 0; i < times; i++) {
         for (unsigned j = 0; j < _msg.length; j++) {
             _msg.ctx[j] = (unsigned char) plain_text[i * 64 + j + 4];
@@ -489,10 +489,44 @@ char *aesDecode(const char plain_text[], const size_t size, const char key[], si
 
         aes_ctx out = Decrypt(_msg, (unsigned char *) key, aes);
 
-        for (unsigned j = 0; j < out.length && i * 64 + j < max_length; j++) result[i * 64 + j] = (char)out.ctx[j];
+        for (unsigned j = 0; j < out.length && i * 64 + j < max_length; j++) result[i * 64 + j] = (char) out.ctx[j];
         free(out.ctx);
     }
     free(_msg.ctx);
     *res_size = max_length;
+    return result;
+}
+
+std::string crypto::aes::encode(const std::string &msg, const std::string &key) {
+    size_t size = msg.length();
+    size_t res_size = 0;
+
+    char *c_res;
+
+
+    c_res = aesEncode(msg.c_str(), size, key.c_str(), &res_size);
+
+    std::string result;
+    for (int i = 0; i < res_size; i++) {
+        result += c_res[i];
+    }
+    free(c_res);
+    return result;
+}
+
+std::string crypto::aes::decode(const std::string &plain_text, const std::string &key) {
+    size_t size = plain_text.length();
+    size_t res_size = 0;
+
+    char *c_res;
+
+
+    c_res = aesDecode(plain_text.c_str(), size, key.c_str(), &res_size);
+
+    std::string result;
+    for (int i = 0; i < res_size; i++) {
+        result += c_res[i];
+    }
+    free(c_res);
     return result;
 }

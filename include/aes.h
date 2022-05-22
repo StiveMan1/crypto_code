@@ -1,11 +1,14 @@
 #ifndef AES_H
 #define AES_H
 
-#include <malloc.h>
-#include <string.h>
+#include "crypto_code.h"
 
-char *aesEncode(const char msg[], size_t size, const char key[], size_t *res_size);
-char *aesDecode(const char plain_text[], size_t size, const char key[], size_t *res_size);
-
+namespace crypto{
+    class aes : virtual crypto_type{
+    public:
+        static std::string encode(const std::string &msg, const std::string &key);
+        static std::string decode(const std::string &plain_text, const std::string &key);
+    };
+}
 
 #endif //AES_H

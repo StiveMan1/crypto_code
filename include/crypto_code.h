@@ -3,12 +3,25 @@
 
 #define AES_256 1
 
-#include "aes.h"
+#include <string>
+
+namespace crypto {
+
+    class NotRepresentedType : public std::exception {
+    };
+    class WrongType : public std::exception {
+    };
+
+    class crypto_type {
+    public:
+        static std::string encode(const std::string &msg, const std::string &key);
+        static std::string decode(const std::string &msg, const std::string &key);
+    };
 
 
-char *encode(const char msg[], size_t size, const char key[], int type, size_t* res_size);
+    std::string encode(const std::string &msg, const std::string &key, int type);
 
-char *decode(const char plain_text[], size_t size, const char key[], int type, size_t* res_size);
+    std::string decode(const std::string &plain_text, const std::string &key, int type);
 
-
+}
 #endif //CRYPTO_CODE_H
